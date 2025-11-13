@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:first_app/pages/tarefa_form_page.dart';
 import 'package:flutter/material.dart';
 import 'model/tarefa_model.dart';
 
@@ -13,19 +14,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<Tarefa> tarefas = [];
-  //Controlador para o campo de texto
-  late TextEditingController controllerDescricao;
-  late TextEditingController controllerTitulo;
+  
+  bool isLoading = true;
+
   //Inicializa o controlador
   @override
   void initState() {
-    controllerDescricao = TextEditingController();
-    controllerTitulo = TextEditingController();
+    
     _getTarefas();
     super.initState();
   }
 
   Future<void> _getTarefas() async {
+
+    setState(() {
+      isLoading = true;
+    });
+
     var dio = Dio(
       BaseOptions(
         connectTimeout: Duration(seconds: 30),
@@ -33,23 +38,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
     var response = await dio.get('/tarefa');
+
+    await Future.delayed(Duration(seconds: 2));
+
     var listData = response.data;
     for (var data in listData) {
       var tarefa = Tarefa(
         titulo: data['titulo'],
         descricao: data['descricao'],
       );
-      setState(() {
-        tarefas.add(tarefa);
-      });
+      tarefas.add(tarefa);
     }
+
+          setState(() {
+        isLoading = true;
+      });
   }
 
   //economiza memoria
   @override
   void dispose() {
-    controllerDescricao.dispose();
-    controllerTitulo.dispose();
     super.dispose();
   }
 
@@ -64,38 +72,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: controllerTitulo,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Digite uma titulo para a tarefa',
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: controllerDescricao,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Digite uma descricao para a tarefa',
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: tarefas.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: Icon(Icons.task),
-                  title: Text(tarefas[index].titulo),
-                  subtitle: Text(tarefas[index].descricao),
-                  trailing: Icon(Icons.arrow_right_alt_outlined),
-                );
-              },
-            ),
+          isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+            itemCount: tarefas.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                leading: Icon(Icons.task),
+                title: Text(tarefas[index].titulo),
+                subtitle: Text(tarefas[index].descricao),
+                trailing: Icon(Icons.arrow_right_alt_outlined),
+              );
+            },
           ),
         ],
       ),
@@ -107,25 +95,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _adsonarTarefa() {
-    var titulotarefa = controllerTitulo.text;
-    var descricaotarefa = controllerDescricao.text;
-    if (titulotarefa.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voce precisa digitar uma tarefa!')),
-      );
-      return;
-    }
-    if (descricaotarefa.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voce precisa digitar uma descricao!')),
-      );
-      return;
-    }
-    var tarefa = Tarefa(descricao: descricaotarefa, titulo: titulotarefa);
-    setState(() {
-      tarefas.add(tarefa);
-    });
-    controllerTitulo.clear();
-    controllerDescricao.clear();
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) {
+          return TarefaFormPage();
+        },
+      ),
+    );
+    
+    // var tarefa = Tarefa(descricao: descricaotarefa, titulo: titulotarefa);
+    // setState(() {
+    //   tarefas.add(tarefa);
+    // });
+    // controllerTitulo.clear();
+    // controllerDescricao.clear();
   }
 }

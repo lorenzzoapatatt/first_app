@@ -88,13 +88,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _adsonarTarefa,
+        onPressed: _adicionarTarefa,
         child: Icon(Icons.add),
       ),
     );
   }
 
-  void _adsonarTarefa() {
+  void _adicionarTarefa() {
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -102,9 +102,13 @@ class _MyHomePageState extends State<MyHomePage> {
           return TarefaFormPage();
         },
       ),
-    );
+    ).then((_) {
+        tarefas.clear();
+        _getTarefas();
+      });
     
     // var tarefa = Tarefa(descricao: descricaotarefa, titulo: titulotarefa);
+    
     // setState(() {
     //   tarefas.add(tarefa);
     // });
